@@ -1,0 +1,50 @@
+[package]
+name = "psocial2"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web e runtime
+axum = "0.8.3"
+tokio = { version = "1.36.0", features = ["full"] }
+
+# Banco de dados
+sqlx = { version = "0.7.3", features = ["postgres", "runtime-tokio-native-tls", "macros", "uuid", "chrono"] }
+uuid = "1.6.1"
+chrono = { version = "0.4.34", features = ["serde"] }
+
+# Serialização
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.114"
+
+# Templates HTML
+tera = "1.19.1"
+
+# Segurança
+argon2 = "0.5.2"
+rand_core = "0.6.4"
+jsonwebtoken = "9.2.0"
+
+# Validação de entrada
+validator = "0.16.1"
+
+# Config e logs
+dotenvy = "0.15.7"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+thiserror = "1.0.58"
+
+# Integrações externas
+printpdf = "0.6.0"
+
+[[bin]]
+name = "psocial_dev"
+path = "src/bin/dev.rs"
+
+[[bin]]
+name = "buildx"
+path = "src/bin/build.rs"
+
+[[bin]]
+name = "testx"
+path = "src/bin/test.rs"
