@@ -1,4 +1,5 @@
-use axum::{Router, routing::get};
+use axum::{Router, routing::get, routing::post};
+use crate::auth::handler::login;
 use std::sync::Arc;
 use tera::Tera;
 
@@ -11,6 +12,7 @@ pub mod models;
 pub mod routes;
 pub mod utils;
 pub mod workers;
+pub mod auth;
 
 use state::AppState;
 use handlers::home::index as homepage;
@@ -28,5 +30,6 @@ pub async fn create_app() -> Router {
     // Cria o router
     Router::new()
         .route("/", get(homepage))
+        .route("/login", post(login))
         .with_state(shared_state)
 }
