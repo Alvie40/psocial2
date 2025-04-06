@@ -1,9 +1,10 @@
 use axum::{
-    async_trait,
-    extract::{FromRequestParts, TypedHeader},
-    headers::{authorization::Bearer, Authorization},
-    http::request::Parts,
+    http::{request::Parts, StatusCode},
+    extract::FromRequestParts,
 };
+use axum_extra::extract::TypedHeader;
+use headers::{Authorization, authorization::Bearer};
+use async_trait::async_trait;
 use crate::auth::jwt::validate_token;
 use uuid::Uuid;
 
@@ -16,18 +17,23 @@ impl<S> FromRequestParts<S> for AuthedUser
 where
     S: Send + Sync,
 {
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, axum::http::StatusCode> {
+    type Rejection = (StatusCode, &'static str);
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        _state: &S,
+    ) -> Result<Self, Self::Rejection> {
         let TypedHeader(Authorization(bearer)) =
             TypedHeader::<Authorization<Bearer>>::from_request_parts(parts, _state)
                 .await
-                .map_err(|_| axum::http::StatusCode::UNAUTHORIZED)?;
+                .map_err(|_| (StatusCode::UNAUTHORIZED, "Token ausente ou inválido"))?;
 
-        let token_data = validate_token(bearer.token())
-            .map_err(|_| axum::http::StatusCode::UNAUTHORIZED)?;
+        let claims = validate_token(bearer.token())
+            .ok_or((StatusCode::UNAUTHORIZED, "Token inválido"))?;
 
         Ok(AuthedUser {
-            user_id: Uuid::parse_str(&token_data.claims.sub)
-                .map_err(|_| axum::http::StatusCode::UNAUTHORIZED)?,
+            user_id: Uuid::parse_str(&claims.sub)
+                .map_err(|_| (StatusCode::UNAUTHORIZED, "ID de usuário inválido"))?,
         })
     }
 }
