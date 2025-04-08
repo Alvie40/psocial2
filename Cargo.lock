@@ -1887,6 +1887,7 @@ dependencies = [
  "chrono",
  "dotenvy",
  "headers",
+ "hyper 1.6.0",
  "jsonwebtoken",
  "printpdf",
  "rand_core",

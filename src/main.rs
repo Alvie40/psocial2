@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use axum::{
     serve,
@@ -7,10 +8,10 @@ use axum::{
     body::Body,
     response::Response,
 };
-use dotenvy::dotenv;
-use psocial2::create_app;
 use tokio::net::TcpListener;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use psocial2::create_app;
 
 /// Middleware de log personalizado
 async fn log_middleware(req: Request<Body>, next: Next) -> Response {
@@ -24,20 +25,21 @@ async fn log_middleware(req: Request<Body>, next: Next) -> Response {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    dotenv().ok();
-
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
         .init();
 
     println!("🌐 Servidor iniciado em http://127.0.0.1:3000");
 
-    // ⚠️ Aqui está o await necessário!
+    // Cria o app com estado e rotas
     let app = create_app().await
         .layer(middleware::from_fn(log_middleware));
 
+    // Cria listener com tokio
     let listener = TcpListener::bind("127.0.0.1:3000").await?;
-    serve(listener, app.into_make_service()).await?;
+
+    // Serve a aplicação corretamente (Axum 0.8 + Hyper 1.6)
+    serve(listener, app).await?;
 
     Ok(())
 }
