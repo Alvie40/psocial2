@@ -12,12 +12,14 @@ pub mod routes;
 pub mod utils;
 pub mod workers;
 pub mod auth;
+pub mod twilio;
+
 
 use state::AppState;
 use handlers::home::index as homepage;
 use routes::public_routes;
 
-pub async fn create_app() -> Router {
+pub async fn create_app() -> Router<Arc<AppState>> {
     // Carrega os templates
     let tera = Tera::new("templates/**/*").expect("Erro ao carregar templates");
 
@@ -28,8 +30,9 @@ pub async fn create_app() -> Router {
     let shared_state = Arc::new(AppState { tera, db });
 
     // Cria o router
-    Router::new()
-        .route("/", get(homepage))
-        .merge(public_routes())
-        .with_state(shared_state)
+    public_routes(shared_state.clone())
+    .route("/", get(homepage))
+    .with_state(shared_state)
+
 }
+

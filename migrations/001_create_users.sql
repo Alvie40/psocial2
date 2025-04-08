@@ -10,7 +10,7 @@ CREATE TABLE users (
     cpf TEXT NOT NULL UNIQUE,
     telefone TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    senha_hash TEXT NOT NULL,
+    senha TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

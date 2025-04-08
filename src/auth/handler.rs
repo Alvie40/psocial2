@@ -2,7 +2,7 @@ use axum::{
     extract::{Json, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::get,
+    //routing::get,
     Json as AxumJson,
 };
 use serde::{Deserialize};
@@ -33,7 +33,7 @@ pub async fn login(
 ) -> impl IntoResponse {
     let user = query_as!(
         LoginUser,
-        "SELECT id, email, senha_hash FROM users WHERE email = $1",
+        "SELECT id, email, senha FROM users WHERE email = $1",
         payload.email
     )
     .fetch_optional(&state.db)
@@ -41,7 +41,7 @@ pub async fn login(
 
     match user {
         Ok(Some(user)) => {
-            let parsed_hash = PasswordHash::new(&user.senha_hash).unwrap();
+            let parsed_hash = PasswordHash::new(&user.senha).unwrap();
             if Argon2::default().verify_password(payload.senha.as_bytes(), &parsed_hash).is_ok() {
                 let token = generate_token(user.id.to_string());
                 Ok(Json(json!({ "token": token })))
@@ -57,7 +57,7 @@ pub async fn login(
 struct LoginUser {
     id: Uuid,
     email: String,
-    senha_hash: String,
+    senha: String,
 }
 
 /// ========== ME (rota protegida) ===========
@@ -112,7 +112,7 @@ pub async fn register_user(
 
     // Gera hash da senha
     let salt = SaltString::generate(&mut OsRng);
-    let senha_hash = Argon2::default()
+    let senha = Argon2::default()
         .hash_password(payload.senha.as_bytes(), &salt)
         .unwrap()
         .to_string();
@@ -121,10 +121,10 @@ pub async fn register_user(
 
     // Insere no banco
     let result = query!(
-        "INSERT INTO users (id, email, senha_hash, cpf, telefone) VALUES ($1, $2, $3, $4, $5)",
+        "INSERT INTO users (id, email, senha, cpf, telefone) VALUES ($1, $2, $3, $4, $5)",
         user_id,
         payload.email,
-        senha_hash,
+        senha,
         payload.cpf,
         payload.telefone
     )

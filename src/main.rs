@@ -37,7 +37,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .layer(middleware::from_fn(log_middleware));
 
     let listener = TcpListener::bind("127.0.0.1:3000").await?;
-    serve(listener, app).await?;
+    serve(listener, app.into_make_service()).await?;
 
     Ok(())
 }
